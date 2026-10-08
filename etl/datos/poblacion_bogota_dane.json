@@ -1,0 +1,19 @@
+{
+  "_fuente": "Proyecciones de población DANE (base CNPV 2018) para Bogotá D.C.",
+  "_nota": "VERIFICAR antes de la entrega final contra la serie oficial de DANE / Secretaría Distrital de Planeación (contrato 500 de 2025). Se usan solo como denominador de las tasas por 100.000 habitantes.",
+  "id_municipio": "bogota_dc",
+  "poblacion": {
+    "2015": 7273265,
+    "2016": 7300918,
+    "2017": 7337449,
+    "2018": 7412566,
+    "2019": 7592871,
+    "2020": 7743955,
+    "2021": 7823334,
+    "2022": 7901653,
+    "2023": 7968095,
+    "2024": 8034649,
+    "2025": 8100000,
+    "2026": 8160000
+  }
+}

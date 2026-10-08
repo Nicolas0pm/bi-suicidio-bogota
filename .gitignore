@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*-firebase-adminsdk-*.json
+llave*.json
+auditoria.log
+etl/salida/
+build/
+dist/
+*.spec
+.pytest_cache/

@@ -1,0 +1,4 @@
+# Solo lo que necesita la aplicación de escritorio portable
+requests>=2.32
+matplotlib>=3.9
+pyinstaller>=6.10

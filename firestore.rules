@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// La aplicación de escritorio NUNCA habla directo con Firestore: todo pasa por la API,
+// que usa el Admin SDK (este no está sujeto a estas reglas). Por eso se bloquea el acceso
+// directo de clientes, salvo lectura de su propio documento de usuario y de los datos
+// analíticos agregados para usuarios autenticados con rol asignado.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function autenticado() { return request.auth != null; }
+    function miUsuario() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+    function tieneRol(roles) {
+      return autenticado()
+        && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid))
+        && miUsuario().id_rol in roles;
+    }
+
+    // Información operativa: solo administradores.
+    // El id de cada documento de usuarios es su firebase_uid.
+    match /usuarios/{uid} {
+      allow read: if autenticado() && request.auth.uid == uid;
+      allow read, write: if tieneRol(['administrador']);
+    }
+    match /roles/{id} {
+      allow read: if autenticado();
+      allow write: if tieneRol(['administrador']);
+    }
+
+    // Información analítica: lectura para cualquier rol, escritura para analista y administrador.
+    function analitica(coleccion) {
+      return coleccion in ['municipios', 'fuentes_datos', 'indicadores_agregados',
+                           'proyecciones', 'comparaciones_regionales', 'reportes'];
+    }
+    match /{coleccion}/{id} {
+      allow read: if analitica(coleccion) && tieneRol(['administrador', 'analista', 'consulta']);
+      allow write: if analitica(coleccion) && tieneRol(['administrador', 'analista']);
+    }
+
+    // Los casos individuales (aunque anonimizados) no se leen desde clientes: solo la API los agrega.
+    match /registros_casos/{id} {
+      allow read, write: if false;
+    }
+
+    // Cualquier otra ruta queda denegada por omisión (Firestore niega lo que no se permite).
+  }
+}

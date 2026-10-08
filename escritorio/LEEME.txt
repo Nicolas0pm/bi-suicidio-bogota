@@ -1,0 +1,9 @@
+BI Suicidio — Bogotá D.C. y Zipaquirá (aplicación portable)
+
+1. Conecte la memoria USB y abra BI_Suicidio.exe (no requiere instalación ni Python).
+2. Inicie sesión con su correo y contraseña. Se necesita conexión a internet.
+3. Si el servidor cambia, edite "api_url" en config.json (junto al .exe) o escríbalo en la pantalla de inicio.
+
+Seguridad: el programa no guarda datos de casos en la USB ni en el equipo. Los reportes PDF
+solo se guardan donde usted elija; se recomienda la carpeta Documentos del equipo, no la USB.
+Windows SmartScreen puede advertir porque el .exe no está firmado: "Más información" > "Ejecutar de todas formas".

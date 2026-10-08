@@ -1,0 +1,69 @@
+{
+  "_fuente": "Secretaría de Salud de Zipaquirá — Grupo de Salud Pública y Vigilancia Epidemiológica. Boletines 'Conducta suicida' e 'Intento de suicidio' (Anexo SAC 1232). Corte: semana epidemiológica 21 de 2026 / 5 de junio de 2026.",
+  "_nota": "Cifras ya agregadas, transcritas del anexo. 2026 corresponde solo al primer semestre (no comparable con años completos). La población se deriva como casos / tasa * 100.000.",
+  "municipio": {
+    "id_municipio": "zipaquira",
+    "nombre": "Zipaquirá",
+    "departamento": "Cundinamarca"
+  },
+  "suicidio_consumado": [
+    {"anio": 2020, "casos": 5,  "tasa_100k": 3.42, "completo": true},
+    {"anio": 2021, "casos": 14, "tasa_100k": 9.20, "completo": true},
+    {"anio": 2022, "casos": 11, "tasa_100k": 7.01, "completo": true},
+    {"anio": 2023, "casos": 11, "tasa_100k": 6.81, "completo": true},
+    {"anio": 2024, "casos": 10, "tasa_100k": 6.03, "completo": true},
+    {"anio": 2025, "casos": 9,  "tasa_100k": 5.29, "completo": true},
+    {"anio": 2026, "casos": 7,  "tasa_100k": 4.01, "completo": false}
+  ],
+  "intento_suicidio_tasa_100k": [
+    {"anio": 2020, "tasa_100k": 67.65,  "completo": true},
+    {"anio": 2021, "tasa_100k": 72.28,  "completo": true},
+    {"anio": 2022, "tasa_100k": 80.90,  "completo": true},
+    {"anio": 2023, "tasa_100k": 102.82, "completo": true},
+    {"anio": 2024, "tasa_100k": 90.41,  "completo": true},
+    {"anio": 2025, "tasa_100k": 61.08,  "completo": true},
+    {"anio": 2026, "tasa_100k": 38.99,  "completo": false}
+  ],
+  "intento_suicidio_2025_2026": {
+    "casos": 172,
+    "casos_2025": 104,
+    "casos_2026": 68,
+    "pct_mujeres": 63.16,
+    "pct_hombres": 36.84,
+    "tasa_100k_mujeres_2025": 77.6,
+    "tasa_100k_hombres_2025": 43.56,
+    "ciclo_vital_pct": {"Infancia": 3.51, "Adolescencia": 22.2, "Juventud": 38.6, "Adultez": 33.33, "Vejez": 2.34},
+    "estado_civil_pct": {"Soltero(a)": 66.3, "Unión libre": 23.3, "Casado(a)": 8.7, "Viudo(a)": 1.7},
+    "intentos_previos_pct": 55,
+    "mecanismo_pct": {
+      "Intoxicación": 53.5,
+      "Elemento cortopunzante": 29.7,
+      "Ahorcamiento o asfixia": 11.6,
+      "Lanzamiento al vacío": 8.7,
+      "Lanzamiento a vehículo": 0.6,
+      "Lanzamiento a cuerpo de agua": 0.6
+    },
+    "factor_desencadenante_pct": {
+      "Problemas familiares": 38,
+      "Conflictos con pareja o expareja": 34,
+      "Problemas económicos": 20,
+      "Escolar / educativa": 15,
+      "Problemas laborales": 12,
+      "Maltrato físico / psicológico / sexual": 8,
+      "Muerte de un familiar": 6,
+      "Enfermedad crónica dolorosa o discapacitante": 5,
+      "Suicidio de un familiar o amigo": 1,
+      "Problemas jurídicos": 1
+    }
+  },
+  "conducta_suicida_2025_2026": {
+    "casos": 321,
+    "personas": 306,
+    "casos_2025": 178,
+    "casos_2026": 143,
+    "pct_mujeres": 64,
+    "pct_hombres": 35,
+    "pct_solteros": 76,
+    "nivel_riesgo_pct": {"Riesgo 1 (Bajo)": 2.8, "Riesgo 2 (Medio)": 32.4, "Riesgo 3 (Medio-Alto)": 34, "Riesgo 4 (Alto)": 11.5}
+  }
+}
