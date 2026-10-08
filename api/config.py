@@ -26,7 +26,9 @@ _cargar_env()
 class Config:
     # "firebase" (Firestore + Firebase Authentication) o "demo" (datos locales en el servidor, usuarios de prueba)
     modo: str = field(default_factory=lambda: os.getenv("MODO", "demo").lower())
-    firebase_credenciales: str = field(default_factory=lambda: os.getenv("FIREBASE_CREDENCIALES", ""))
+    # ruta absoluta o relativa a la raíz del proyecto
+    firebase_credenciales: str = field(default_factory=lambda: str(RAIZ / os.environ["FIREBASE_CREDENCIALES"])
+                                       if os.getenv("FIREBASE_CREDENCIALES") else "")
     firebase_web_api_key: str = field(default_factory=lambda: os.getenv("FIREBASE_WEB_API_KEY", ""))
     demo_secreto: str = field(default_factory=lambda: os.getenv("DEMO_SECRETO", "cambie-este-secreto-en-produccion"))
     demo_clave: str = field(default_factory=lambda: os.getenv("DEMO_CLAVE", "demo1234"))
