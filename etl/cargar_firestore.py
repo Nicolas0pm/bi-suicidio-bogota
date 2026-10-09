@@ -7,6 +7,7 @@ Uso (requiere FIREBASE_CREDENCIALES en .env apuntando a la llave de cuenta de se
 from __future__ import annotations
 
 import argparse
+import json
 
 from etl import catalogos, limpieza
 
@@ -18,11 +19,24 @@ def asegurar_web_api_key() -> None:
 
     if os.getenv("FIREBASE_WEB_API_KEY"):
         return
-    from firebase_admin import project_management
+    import time
 
-    apps = project_management.list_web_apps()
-    app = apps[0] if apps else project_management.create_web_app("app-escritorio-usb")
-    clave = app.get_config()["apiKey"]
+    import firebase_admin
+    from google.auth.transport.requests import AuthorizedSession
+
+    from api.config import config
+
+    cred = firebase_admin.get_app().credential.get_credential()
+    sesion = AuthorizedSession(cred.with_scopes(["https://www.googleapis.com/auth/cloud-platform"]))
+    base = f"https://firebase.googleapis.com/v1beta1/projects/{json.load(open(config.firebase_credenciales))['project_id']}"
+    apps = sesion.get(f"{base}/webApps").json().get("apps", [])
+    if not apps:
+        operacion = sesion.post(f"{base}/webApps", json={"displayName": "app-escritorio-usb"}).json()
+        while not operacion.get("done"):  # la creación es asíncrona
+            time.sleep(2)
+            operacion = sesion.get(f"https://firebase.googleapis.com/v1beta1/{operacion['name']}").json()
+        apps = [operacion["response"]]
+    clave = sesion.get(f"{base}/webApps/{apps[0]['appId']}/config").json()["apiKey"]
     env = Path(__file__).resolve().parent.parent / ".env"
     lineas = [l for l in (env.read_text(encoding="utf-8").splitlines() if env.exists() else [])
               if not l.startswith("FIREBASE_WEB_API_KEY=")]
