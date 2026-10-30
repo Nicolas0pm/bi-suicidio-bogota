@@ -26,7 +26,7 @@ AZUL, NARANJA, GRIS, VERDE = "#2a6fb0", "#d9822b", "#7a7a7a", "#2e8b57"
 METODOS = {"Regresión lineal": "regresion_lineal", "ARIMA": "ARIMA", "Suavizado exponencial (Holt)": "suavizado_exponencial"}
 INDICADORES = {"Tasa media por 100.000 hab.": "tasa_100k", "Total de casos": "casos",
                "Variación % de la tasa": "variacion_pct"}
-URL_POR_DEFECTO = "http://localhost:8000"
+URL_POR_DEFECTO = "https://bi-suicidio-bogota-api.onrender.com"
 
 
 def carpeta_programa() -> Path:
