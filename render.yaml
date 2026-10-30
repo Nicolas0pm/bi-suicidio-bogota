@@ -1,0 +1,17 @@
+# Despliegue de la API en Render (Blueprint). La llave de Firebase se sube a mano como Secret File.
+services:
+  - type: web
+    name: bi-suicidio-bogota-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /salud
+    envVars:
+      - key: MODO
+        value: firebase
+      - key: FIREBASE_CREDENCIALES
+        value: /etc/secrets/llave-firebase.json
+      - key: FIREBASE_WEB_API_KEY
+        sync: false
+      - key: LIMITE_LOGIN_POR_MINUTO
+        value: "10"
