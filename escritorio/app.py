@@ -35,10 +35,19 @@ def carpeta_programa() -> Path:
 
 
 def leer_config() -> dict:
+    """Lee config.json junto al .exe; si no existe, lo crea con la URL por defecto (solo configuración, sin datos)."""
+    ruta = carpeta_programa() / "config.json"
+    por_defecto = {"api_url": URL_POR_DEFECTO}
+    if not ruta.exists():
+        try:
+            ruta.write_text(json.dumps(por_defecto, indent=2) + "\n", encoding="utf-8")
+        except OSError:
+            pass  # memoria protegida contra escritura: se usa la URL por defecto
+        return por_defecto
     try:
-        return json.loads((carpeta_programa() / "config.json").read_text(encoding="utf-8"))
+        return json.loads(ruta.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return {"api_url": URL_POR_DEFECTO}
+        return por_defecto
 
 
 def carpeta_documentos() -> Path:
