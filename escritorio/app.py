@@ -289,7 +289,7 @@ class PestanaDemografia(Pestana):
 
 
 class PestanaProyeccion(Pestana):
-    titulo = "Proyección 2030–2040"
+    titulo = "Proyección"
 
     def construir(self):
         controles = ttk.Frame(self)
@@ -302,13 +302,31 @@ class PestanaProyeccion(Pestana):
         self.metodo = ttk.Combobox(controles, values=list(METODOS), state="readonly", width=28)
         self.metodo.set("Regresión lineal")
         self.metodo.pack(side="left", padx=4)
-        for combo in (self.municipio, self.metodo):
-            combo.bind("<<ComboboxSelected>>", lambda _: self.cargar())
-        self.boton = ttk.Button(controles, text="Generar proyección", command=self.generar)
-        self.boton.pack(side="left", padx=10)
+        self.municipio.bind("<<ComboboxSelected>>", lambda _: self.cargar(reiniciar_base=True))
+        self.metodo.bind("<<ComboboxSelected>>", lambda _: self.cargar())
+
+        anios = ttk.Frame(self)
+        anios.pack(fill="x", pady=(8, 0))
+        ttk.Label(anios, text="Proyectar desde").pack(side="left")
+        self.proy_desde = ttk.Spinbox(anios, from_=2026, to=2060, width=6)
+        self.proy_desde.set(2030)
+        self.proy_desde.pack(side="left", padx=4)
+        ttk.Label(anios, text="hasta").pack(side="left")
+        self.proy_hasta = ttk.Spinbox(anios, from_=2026, to=2060, width=6)
+        self.proy_hasta.set(2040)
+        self.proy_hasta.pack(side="left", padx=(4, 20))
+        ttk.Label(anios, text="Usar histórico desde").pack(side="left")
+        self.base_desde = ttk.Spinbox(anios, from_=2015, to=2030, width=6)
+        self.base_desde.pack(side="left", padx=4)
+        ttk.Label(anios, text="hasta").pack(side="left")
+        self.base_hasta = ttk.Spinbox(anios, from_=2015, to=2030, width=6)
+        self.base_hasta.pack(side="left", padx=4)
+        self.boton = ttk.Button(anios, text="Generar proyección", command=self.generar)
+        self.boton.pack(side="left", padx=14)
         if not self.app.api.puede("generar_proyeccion"):
-            self.boton.state(["disabled"])
-            ttk.Label(controles, text="(su rol solo puede ver proyecciones ya generadas)", style="Nota.TLabel").pack(side="left")
+            for w in (self.boton, self.proy_desde, self.proy_hasta, self.base_desde, self.base_hasta):
+                w.state(["disabled"])
+            ttk.Label(anios, text="(su rol solo puede ver proyecciones ya generadas)", style="Nota.TLabel").pack(side="left")
 
         cuerpo = ttk.Panedwindow(self, orient="horizontal")
         cuerpo.pack(fill="both", expand=True, pady=(10, 0))
@@ -322,35 +340,58 @@ class PestanaProyeccion(Pestana):
         cuerpo.add(self.tabla, weight=1)
         self.nota = ttk.Label(self, style="Nota.TLabel", wraplength=1000, justify="left")
         self.nota.pack(anchor="w", pady=(6, 0))
+        self.historico = []
 
-    def cargar(self):
+    def cargar(self, reiniciar_base: bool = True):
         def tarea():
             mun = self.municipio.get()
             serie = self.app.api.get(f"/municipios/{mun}/indicadores")["serie"]
             guardadas = self.app.api.get("/proyecciones", municipio=mun)
-            return serie, guardadas
+            return serie, guardadas, reiniciar_base
         self.app.en_segundo_plano(tarea, self.mostrar_guardadas)
 
     def mostrar_guardadas(self, datos):
-        serie, guardadas = datos
-        historico = [{"anio": s["anio"], "casos": s["casos"]} for s in serie if s["completo"]]
+        serie, guardadas, reiniciar_base = datos
+        self.historico = [{"anio": s["anio"], "casos": s["casos"]} for s in serie if s["completo"]]
+        if reiniciar_base and self.historico:
+            self.base_desde.set(self.historico[0]["anio"])
+            self.base_hasta.set(self.historico[-1]["anio"])
         metodo = METODOS[self.metodo.get()]
-        resultados = sorted([g for g in guardadas if g["metodo"] == metodo], key=lambda g: g["anio_proyectado"])
-        # quedarse con la generación más reciente de cada año
-        por_anio = {}
-        for g in sorted(resultados, key=lambda g: g.get("fecha_generacion", "")):
-            por_anio[g["anio_proyectado"]] = g
-        self.mostrar({"historico": historico, "resultados": [por_anio[a] for a in sorted(por_anio)],
-                      "modelo": resultados[0]["modelo"] if resultados else None})
+        delmetodo = [g for g in guardadas if g["metodo"] == metodo]
+        # se muestra solo la última generación (todos sus años comparten fecha_generacion)
+        ultima = max((g.get("fecha_generacion", "") for g in delmetodo), default=None)
+        resultados = sorted([g for g in delmetodo if g.get("fecha_generacion", "") == ultima],
+                            key=lambda g: g["anio_proyectado"])
+        primera = resultados[0] if resultados else {}
+        self.mostrar({"historico": self.historico, "resultados": resultados, "modelo": primera.get("modelo"),
+                      "historico_desde": primera.get("historico_desde"),
+                      "historico_hasta": primera.get("historico_hasta")})
 
     def generar(self):
-        cuerpo = {"id_municipio": self.municipio.get(), "metodo": METODOS[self.metodo.get()]}
+        try:
+            valores = [int(w.get()) for w in (self.proy_desde, self.proy_hasta, self.base_desde, self.base_hasta)]
+        except ValueError:
+            messagebox.showwarning("Años inválidos", "Todos los años deben ser números.")
+            return
+        proy_desde, proy_hasta, base_desde, base_hasta = valores
+        if proy_desde > proy_hasta or base_desde > base_hasta:
+            messagebox.showwarning("Años inválidos", "En cada rango, el año «desde» debe ser menor o igual que «hasta».")
+            return
+        cuerpo = {"id_municipio": self.municipio.get(), "metodo": METODOS[self.metodo.get()],
+                  "anio_desde": proy_desde, "anio_hasta": proy_hasta,
+                  "historico_desde": base_desde, "historico_hasta": base_hasta}
         self.app.en_segundo_plano(lambda: self.app.api.post("/proyecciones", cuerpo), self.mostrar)
 
     def mostrar(self, r):
         eje = self.grafico.nuevo()
         h = r["historico"]
+        base_desde, base_hasta = r.get("historico_desde"), r.get("historico_hasta")
         eje.plot([x["anio"] for x in h], [x["casos"] for x in h], "o-", color=AZUL, label="Histórico")
+        if base_desde is not None:
+            fuera = [x for x in h if not base_desde <= x["anio"] <= base_hasta]
+            if fuera:
+                eje.plot([x["anio"] for x in fuera], [x["casos"] for x in fuera], "o", color=GRIS,
+                         label="No usado en el modelo")
         self.tabla.delete(*self.tabla.get_children())
         res = r["resultados"]
         if res:
@@ -361,12 +402,14 @@ class PestanaProyeccion(Pestana):
             for x in res:
                 self.tabla.insert("", "end", values=(x["anio_proyectado"], x["valor_estimado"],
                                                      x["intervalo_confianza_inf"], x["intervalo_confianza_sup"]))
-            self.nota.config(text=f"Modelo: {r.get('modelo')}. La proyección supone que la tendencia observada se "
-                                  "mantiene; el intervalo de confianza se amplía con el horizonte. "
-                                  "Zipaquirá tiene pocos años y casos, por lo que su intervalo es muy amplio.")
+            base = f" Años históricos usados: {base_desde}–{base_hasta}." if base_desde is not None else ""
+            self.nota.config(text=f"Modelo: {r.get('modelo')}. Proyección {anios[0]}–{anios[-1]}.{base} "
+                                  "La proyección supone que la tendencia observada se mantiene; el intervalo de "
+                                  "confianza se amplía con el horizonte. Con pocos años de base (o en Zipaquirá, "
+                                  "con pocos casos) el intervalo es muy amplio.")
         else:
             self.nota.config(text="Aún no hay proyecciones guardadas para este método. "
-                                  + ("Pulse «Generar proyección»." if self.app.api.puede("generar_proyeccion")
+                                  + ("Elija los años y pulse «Generar proyección»." if self.app.api.puede("generar_proyeccion")
                                      else "Pida a un analista que la genere."))
         eje.set_title(f"Casos de suicidio — {self.municipio.get()}")
         eje.set_ylim(bottom=0)

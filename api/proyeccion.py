@@ -12,6 +12,7 @@ from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 METODOS = ("regresion_lineal", "ARIMA", "suavizado_exponencial")
 ANIO_INICIO_PROYECCION = 2030
 ANIO_FIN_PROYECCION = 2040
+ANIO_MAXIMO_PROYECCION = 2060  # más allá la incertidumbre deja de ser útil
 
 
 def _regresion_lineal(serie: pd.Series, anios: np.ndarray, alfa: float) -> pd.DataFrame:

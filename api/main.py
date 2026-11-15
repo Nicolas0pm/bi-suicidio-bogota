@@ -19,7 +19,7 @@ from etl.catalogos import ROLES
 from . import analitica, reportes
 from .auth import Usuario, iniciar_sesion, limitar_tasa, renovar_token, requiere, usuario_actual
 from .config import config
-from .proyeccion import ANIO_FIN_PROYECCION, ANIO_INICIO_PROYECCION, METODOS, proyectar
+from .proyeccion import ANIO_FIN_PROYECCION, ANIO_INICIO_PROYECCION, ANIO_MAXIMO_PROYECCION, METODOS, proyectar
 from .repositorio import repositorio
 
 auditoria = logging.getLogger("auditoria")
@@ -56,8 +56,12 @@ class Refresh(BaseModel):
 class SolicitudProyeccion(BaseModel):
     id_municipio: str = "bogota_dc"
     metodo: str = Field("regresion_lineal", description=" | ".join(METODOS))
-    anio_proyectado: int | None = Field(None, ge=ANIO_INICIO_PROYECCION, le=ANIO_FIN_PROYECCION,
-                                        description="Si se omite, se proyecta todo 2030–2040.")
+    anio_desde: int = Field(ANIO_INICIO_PROYECCION, le=ANIO_MAXIMO_PROYECCION, description="Primer año a proyectar.")
+    anio_hasta: int = Field(ANIO_FIN_PROYECCION, le=ANIO_MAXIMO_PROYECCION, description="Último año a proyectar.")
+    historico_desde: int | None = Field(None, description="Primer año histórico usado para ajustar el modelo.")
+    historico_hasta: int | None = Field(None, description="Último año histórico usado (solo años completos).")
+    anio_proyectado: int | None = Field(None, le=ANIO_MAXIMO_PROYECCION,
+                                        description="Atajo para proyectar un único año (reemplaza desde/hasta).")
 
 
 class SolicitudComparacion(BaseModel):
@@ -190,24 +194,39 @@ def generar_proyeccion(datos: SolicitudProyeccion, usuario: Usuario = Depends(re
     except KeyError:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Municipio no encontrado.")
     historico = serie[serie["completo"]].set_index("anio")["casos"]
+    if datos.historico_desde is not None:
+        historico = historico[historico.index >= datos.historico_desde]
+    if datos.historico_hasta is not None:
+        historico = historico[historico.index <= datos.historico_hasta]
+    if historico.empty:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No hay años completos en el período histórico elegido.")
+    desde, hasta = (datos.anio_proyectado,) * 2 if datos.anio_proyectado else (datos.anio_desde, datos.anio_hasta)
+    ultimo_historico = int(historico.index.max())
+    if desde > hasta:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "El año inicial de la proyección no puede ser mayor que el final.")
+    if desde <= ultimo_historico:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                            f"La proyección debe empezar después del último año histórico usado ({ultimo_historico}).")
     try:
-        marco, descripcion = proyectar(historico, datos.metodo)
+        marco, descripcion = proyectar(historico, datos.metodo, anio_fin=hasta)
     except ValueError as e:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
-    anios = [datos.anio_proyectado] if datos.anio_proyectado else range(ANIO_INICIO_PROYECCION, ANIO_FIN_PROYECCION + 1)
+    base = {"historico_desde": int(historico.index.min()), "historico_hasta": ultimo_historico,
+            "anio_desde": desde, "anio_hasta": hasta}
     fecha, resultados = ahora(), []
-    for anio in anios:
+    for anio in range(desde, hasta + 1):
         fila = marco.loc[anio]
         doc = {"id_municipio": datos.id_municipio, "anio_proyectado": int(anio),
                "valor_estimado": round(float(fila["media"]), 1),
                "intervalo_confianza_inf": round(float(fila["inf"]), 1),
                "intervalo_confianza_sup": round(float(fila["sup"]), 1),
-               "metodo": datos.metodo, "modelo": descripcion,
+               "metodo": datos.metodo, "modelo": descripcion, **base,
                "id_usuario_generador": usuario.id_usuario, "fecha_generacion": fecha}
         id_doc = repo.guardar("proyecciones", doc, f"p_{anio}_{datos.id_municipio}_{datos.metodo}")
         resultados.append({"id_proyeccion": id_doc, **doc})
-    auditar(usuario, "generar_proyeccion", f"municipio={datos.id_municipio} metodo={datos.metodo}")
-    return {"id_municipio": datos.id_municipio, "metodo": datos.metodo, "modelo": descripcion,
+    auditar(usuario, "generar_proyeccion", f"municipio={datos.id_municipio} metodo={datos.metodo} "
+                                         f"anios={desde}-{hasta} base={base['historico_desde']}-{ultimo_historico}")
+    return {"id_municipio": datos.id_municipio, "metodo": datos.metodo, "modelo": descripcion, **base,
             "historico": [{"anio": int(a), "casos": int(c)} for a, c in historico.items()],
             "resultados": resultados}
 

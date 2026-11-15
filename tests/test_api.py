@@ -109,3 +109,35 @@ def test_carga_csv_por_api():
     assert r.status_code == 201, r.text
     assert r.json()["duplicados_eliminados"] == r.json()["casos_cargados"]
     assert isinstance(pd.read_csv(limpieza.ARCHIVO_SALIDA), pd.DataFrame)
+
+
+def test_proyeccion_con_anios_elegidos():
+    cuerpo = {"metodo": "regresion_lineal", "anio_desde": 2028, "anio_hasta": 2033,
+              "historico_desde": 2018, "historico_hasta": 2025}
+    r = cliente.post("/api/v1/proyecciones", json=cuerpo, headers=token("analista"))
+    assert r.status_code == 201, r.text
+    datos = r.json()
+    assert [p["anio_proyectado"] for p in datos["resultados"]] == list(range(2028, 2034))
+    assert [h["anio"] for h in datos["historico"]] == list(range(2018, 2026))
+    assert datos["historico_desde"] == 2018 and datos["resultados"][0]["historico_hasta"] == 2025
+
+
+def test_proyeccion_un_solo_anio_sigue_funcionando():
+    r = cliente.post("/api/v1/proyecciones", json={"anio_proyectado": 2035}, headers=token("analista"))
+    assert r.status_code == 201
+    assert [p["anio_proyectado"] for p in r.json()["resultados"]] == [2035]
+
+
+@pytest.mark.parametrize("cuerpo", [
+    {"anio_desde": 2040, "anio_hasta": 2030},                      # rango al revés
+    {"anio_desde": 2024, "anio_hasta": 2030},                      # empieza dentro del histórico
+    {"historico_desde": 2023, "historico_hasta": 2025},            # menos de 5 años de base
+    {"historico_desde": 2030, "historico_hasta": 2035},            # sin años históricos
+])
+def test_proyeccion_anios_invalidos(cuerpo):
+    assert cliente.post("/api/v1/proyecciones", json=cuerpo, headers=token("analista")).status_code == 400
+
+
+def test_proyeccion_no_pasa_de_2060():
+    r = cliente.post("/api/v1/proyecciones", json={"anio_hasta": 2070}, headers=token("analista"))
+    assert r.status_code == 422
