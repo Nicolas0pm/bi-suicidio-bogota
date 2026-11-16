@@ -26,6 +26,7 @@ AZUL, NARANJA, GRIS, VERDE = "#2a6fb0", "#d9822b", "#7a7a7a", "#2e8b57"
 METODOS = {"Regresión lineal": "regresion_lineal", "ARIMA": "ARIMA", "Suavizado exponencial (Holt)": "suavizado_exponencial"}
 INDICADORES = {"Tasa media por 100.000 hab.": "tasa_100k", "Total de casos": "casos",
                "Variación % de la tasa": "variacion_pct"}
+ETIQUETA_INDICADOR = {v: k for k, v in INDICADORES.items()}
 URL_POR_DEFECTO = "https://bi-suicidio-bogota-api.onrender.com"
 
 
@@ -486,7 +487,7 @@ class PestanaComparacion(Pestana):
             c = comparaciones[0]
             signo = "por encima" if c["resultado"] > 0 else "por debajo" if c["resultado"] < 0 else "igual"
             self.resultado.config(
-                text=f"{c['indicador']} {c['periodo_inicio']}–{c['periodo_fin']}: Bogotá {c['valor_base']} · "
+                text=f"{ETIQUETA_INDICADOR.get(c['indicador'], c['indicador'])} {c['periodo_inicio']}–{c['periodo_fin']}: Bogotá {c['valor_base']} · "
                      f"Zipaquirá {c['valor_comparado']} → Zipaquirá {abs(c['resultado'])} {signo}")
         else:
             self.resultado.config(text="Sin comparaciones guardadas todavía.")
