@@ -1,6 +1,7 @@
 {
-  "_fuente": "Proyecciones de población DANE (base CNPV 2018) para Bogotá D.C.",
-  "_nota": "VERIFICAR antes de la entrega final contra la serie oficial de DANE / Secretaría Distrital de Planeación (contrato 500 de 2025). Se usan solo como denominador de las tasas por 100.000 habitantes.",
+  "_fuente": "Secretaría Distrital de Planeación (SDP) — Proyecciones y retroproyecciones de población por localidad 2005–2035 (marzo 2025), contrato interadministrativo 500 de 2025 con el DANE. Datos Abiertos Bogotá.",
+  "_url": "https://datosabiertos.bogota.gov.co/dataset/0f1fb76a-1595-43d5-9257-0abcc3db908a",
+  "_nota": "Suma de cabecera y rural de las 20 localidades.",
   "id_municipio": "bogota_dc",
   "poblacion": {
     "2015": 7273265,
@@ -8,12 +9,12 @@
     "2017": 7337449,
     "2018": 7412566,
     "2019": 7592871,
-    "2020": 7743955,
+    "2020": 7732161,
     "2021": 7823334,
-    "2022": 7901653,
-    "2023": 7968095,
-    "2024": 8034649,
-    "2025": 8100000,
-    "2026": 8160000
+    "2022": 7873316,
+    "2023": 7907281,
+    "2024": 7929539,
+    "2025": 7937898,
+    "2026": 7935754
   }
 }

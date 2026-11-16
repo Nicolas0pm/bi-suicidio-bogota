@@ -27,10 +27,10 @@ FUENTES = {
                           "resource/0f7afde4-7597-41c2-9922-b2b8b5c2e1f8",
     },
     "dane_proyecciones": {
-        "nombre": "DANE — Proyecciones de población",
-        "tipo": "boletín estadístico",
-        "cobertura_temporal": "2015–2026",
-        "url_referencia": "https://www.dane.gov.co",
+        "nombre": "SDP / DANE — Proyecciones y retroproyecciones de población por localidad 2005–2035",
+        "tipo": "proyecciones oficiales de población (contrato 500 de 2025)",
+        "cobertura_temporal": "2005–2035",
+        "url_referencia": "https://datosabiertos.bogota.gov.co/dataset/0f1fb76a-1595-43d5-9257-0abcc3db908a",
     },
     "zipaquira_sac_1232": {
         "nombre": "Secretaría de Salud de Zipaquirá — Boletines conducta e intento de suicidio (Anexo SAC 1232)",

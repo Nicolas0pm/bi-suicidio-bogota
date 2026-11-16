@@ -35,9 +35,7 @@ de 2026) a `etl/datos/zipaquira_anexo_sac_1232.json`. Incluye la tasa de suicidi
 boletín trae cifras ya agregadas, la comparación se hace sobre indicadores por año. Estos se guardan en la
 colección `indicadores_agregados`.
 
-> ⚠️ `etl/datos/poblacion_bogota_dane.json` contiene **proyecciones DANE aproximadas** que se usan como denominador
-> de la tasa de Bogotá. Verifíquelas con la serie oficial antes de la entrega. Las tasas cambian de inmediato al
-> editar ese archivo.
+> La población de Bogotá (denominador de las tasas) viene de las **proyecciones oficiales por localidad 2005–2035 de la Secretaría Distrital de Planeación y el DANE** (marzo 2025), la misma fuente que usa SaluData. Están en `etl/datos/poblacion_bogota_dane.json` (ciudad) y `etl/datos/poblacion_localidades_sdp.json` (por localidad).
 
 ## 1. Probar todo en modo demo (sin Firebase)
 
